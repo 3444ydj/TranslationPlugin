@@ -1,0 +1,13 @@
+<!--
+    Fork 版自定义插件仓库描述文件.
+    IDE 通过 Settings | Plugins | Custom Plugin Repositories 添加本文件地址后,
+    即可获得原生插件升级提示. 每次发版需更新 version 与 url 两个属性.
+-->
+<plugins>
+    <plugin id="cn.yiiguxing.plugin.translate.fork"
+            version="3.9.3"
+            url="https://github.com/3444ydj/TranslationPlugin/releases/download/fork-v3.9.3/TranslationPlugin-3.9.3.zip">
+        <idea-version since-build="241"/>
+        <name>Translation (fork)</name>
+    </plugin>
+</plugins>

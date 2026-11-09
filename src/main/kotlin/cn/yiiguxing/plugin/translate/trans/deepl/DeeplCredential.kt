@@ -14,7 +14,7 @@ internal class DeeplCredential private constructor() :
     companion object {
 
         private val SERVICE_NAME =
-            generateServiceName("DeepL Credentials", "${TranslationPlugin.PLUGIN_ID}.DEEPL_AUTH_KEY")
+            generateServiceName("DeepL Credentials", "${TranslationPlugin.STORAGE_ID}.DEEPL_AUTH_KEY")
 
         val service: DeeplCredential get() = service()
 
