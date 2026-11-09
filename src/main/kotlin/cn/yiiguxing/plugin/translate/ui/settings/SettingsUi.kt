@@ -2,6 +2,7 @@ package cn.yiiguxing.plugin.translate.ui.settings
 
 import cn.yiiguxing.plugin.translate.TTSSource
 import cn.yiiguxing.plugin.translate.TranslationStorages
+import cn.yiiguxing.plugin.translate.UpstreamUpdateInterval
 import cn.yiiguxing.plugin.translate.message
 import cn.yiiguxing.plugin.translate.trans.Lang
 import cn.yiiguxing.plugin.translate.tts.TTSEngine
@@ -239,6 +240,16 @@ internal abstract class SettingsUi {
             border = JBUI.Borders.emptyTop(20)
         }
 
+    protected val upstreamUpdateCheckCheckBox: JBCheckBox =
+        JBCheckBox(message("settings.options.upstream.update.check"))
+
+    protected val upstreamUpdateIntervalComboBox: ComboBox<UpstreamUpdateInterval> =
+        comboBox<UpstreamUpdateInterval>().apply {
+            renderer = textListCellRenderer<UpstreamUpdateInterval> { it.displayName }
+        }
+
+    protected val upstreamCheckNowButton: JButton = JButton(message("settings.button.check.now"))
+
     protected fun doLayout() {
         val generalPanel = titledPanel(message("settings.panel.title.general")) {
             val comboboxGroup = "combobox"
@@ -281,6 +292,23 @@ internal abstract class SettingsUi {
                 .gapBefore(JBUIScale.scale(2).toString())
                 .gapTop(JBUIScale.scale(2).toString())
                 .spanX(4)
+                .cell(1, 2)
+                .wrap()
+            add(comment, commentCC)
+        }
+
+        val upstreamUpdatePanel = titledPanel(message("settings.panel.title.upstream")) {
+            add(upstreamUpdateCheckCheckBox, wrap().span(3))
+
+            add(JLabel(message("settings.label.upstream.interval")))
+            add(upstreamUpdateIntervalComboBox)
+            add(upstreamCheckNowButton, wrap())
+
+            val comment = ComponentPanelBuilder.createCommentComponent(message("settings.comment.upstream"), true)
+            val commentCC = fillX()
+                .gapBefore(JBUIScale.scale(2).toString())
+                .gapTop(JBUIScale.scale(2).toString())
+                .spanX(3)
                 .cell(1, 2)
                 .wrap()
             add(comment, commentCC)
@@ -407,6 +435,7 @@ internal abstract class SettingsUi {
         wholePanel.addVertically(
             generalPanel,
             networkPanel,
+            upstreamUpdatePanel,
             fontsPanel,
             textSelectionPanel,
             translationPopupPanel,

@@ -3,6 +3,7 @@ package cn.yiiguxing.plugin.translate.ui.settings
 import cn.yiiguxing.plugin.translate.Settings
 import cn.yiiguxing.plugin.translate.TTSSource
 import cn.yiiguxing.plugin.translate.TranslationStates
+import cn.yiiguxing.plugin.translate.UpstreamUpdateInterval
 import cn.yiiguxing.plugin.translate.message
 import cn.yiiguxing.plugin.translate.service.CacheService
 import cn.yiiguxing.plugin.translate.ui.SupportDialog
@@ -17,6 +18,11 @@ import cn.yiiguxing.plugin.translate.util.concurrent.finishOnUiThread
 import cn.yiiguxing.plugin.translate.util.concurrent.successOnUiThread
 import cn.yiiguxing.plugin.translate.wordbook.WordBookService
 import cn.yiiguxing.plugin.translate.wordbook.WordBookState
+import cn.yiiguxing.plugin.translate.update.UpstreamUpdateService
+import com.intellij.openapi.actionSystem.ActionManager
+import com.intellij.openapi.actionSystem.ActionPlaces
+import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.components.service
 import com.intellij.openapi.editor.event.DocumentEvent
 import com.intellij.openapi.editor.event.DocumentListener
 import com.intellij.openapi.fileTypes.FileTypeManager
@@ -24,6 +30,7 @@ import com.intellij.openapi.fileTypes.FileTypes
 import com.intellij.openapi.options.ConfigurationException
 import com.intellij.openapi.project.ProjectManager
 import com.intellij.ui.CollectionComboBoxModel
+import com.intellij.ide.DataManager
 import com.intellij.ui.EditorTextField
 import com.intellij.ui.FontComboBox
 import com.intellij.ui.JBColor
@@ -158,6 +165,20 @@ internal class SettingsPanel(
             ttsEngineComboBox.selected?.showConfigurationDialog()
         }
 
+        upstreamCheckNowButton.addActionListener {
+            // 1. 立即检查官方上游版本(手动触发, 不受开关/间隔限制)
+            service<UpstreamUpdateService>().checkNow()
+
+            // 2. 触发 IDE 原生更新检查(Help -> Check for Updates), 覆盖自定义插件仓库的 fork 升级检测
+            val action = ActionManager.getInstance().getAction("CheckForUpdate")
+            if (action != null) {
+                val context = DataManager.getInstance().getDataContext(upstreamCheckNowButton)
+                action.actionPerformed(
+                    AnActionEvent.createFromAnAction(action, null, ActionPlaces.UNKNOWN, context)
+                )
+            }
+        }
+
         val background = ignoreRegExp.background
         ignoreRegExp.addDocumentListener(object : DocumentListener {
             override fun documentChanged(e: DocumentEvent) {
@@ -244,6 +265,9 @@ internal class SettingsPanel(
                     || settings.proxyEnabled != proxyEnableCheckBox.isSelected
                     || settings.proxyHost != proxyHostField.text.trim()
                     || settings.proxyPort != (proxyPortField.text.toIntOrNull() ?: 0)
+                    || settings.upstreamUpdateCheckEnabled != upstreamUpdateCheckCheckBox.isSelected
+                    || settings.upstreamUpdateCheckIntervalHours != (upstreamUpdateIntervalComboBox.selected?.hours
+                        ?: UpstreamUpdateInterval.HOURS_24.hours)
         }
 
     private fun getConfigurationPath(vararg configurations: String): String = configurations.joinToString("|") {
@@ -319,6 +343,9 @@ internal class SettingsPanel(
             proxyEnabled = proxyEnableCheckBox.isSelected
             proxyHost = proxyHostField.text.trim()
             this.proxyPort = proxyPort
+            upstreamUpdateCheckEnabled = upstreamUpdateCheckCheckBox.isSelected
+            upstreamUpdateCheckIntervalHours = upstreamUpdateIntervalComboBox.selected?.hours
+                ?: UpstreamUpdateInterval.HOURS_24.hours
         }
     }
 
@@ -360,6 +387,10 @@ internal class SettingsPanel(
         proxyEnableCheckBox.isSelected = settings.proxyEnabled
         proxyHostField.text = settings.proxyHost
         proxyPortField.text = if (settings.proxyPort > 0) settings.proxyPort.toString() else ""
+        upstreamUpdateCheckCheckBox.isSelected = settings.upstreamUpdateCheckEnabled
+        upstreamUpdateIntervalComboBox.selected = UpstreamUpdateInterval.entries
+            .firstOrNull { it.hours == settings.upstreamUpdateCheckIntervalHours }
+            ?: UpstreamUpdateInterval.HOURS_24
     }
 
     companion object {

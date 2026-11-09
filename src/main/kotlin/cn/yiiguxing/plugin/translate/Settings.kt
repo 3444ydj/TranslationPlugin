@@ -201,6 +201,16 @@ class Settings : PersistentStateComponent<Settings> {
      */
     var translationWindowLocation: WindowLocation = WindowLocation.MOUSE_SCREEN
 
+    /**
+     * 启用官方上游版本检测, 关闭后不再轮询官方 Release 也不再提示
+     */
+    var upstreamUpdateCheckEnabled: Boolean = true
+
+    /**
+     * 官方上游版本检测间隔(小时), 见 [UpstreamUpdateInterval], 修改后于下一个检测周期生效
+     */
+    var upstreamUpdateCheckIntervalHours: Int = UpstreamUpdateInterval.HOURS_24.hours
+
     override fun getState(): Settings = this
 
     override fun loadState(state: Settings) {
@@ -326,6 +336,15 @@ class AliTranslateSettings : AppKeySettings(ALI_APP_KEY)
 enum class TTSSource(val displayName: String) {
     ORIGINAL(message("settings.item.original")),
     TRANSLATION(message("settings.item.translation"))
+}
+
+/**
+ * 官方上游版本检测间隔选项
+ */
+enum class UpstreamUpdateInterval(val hours: Int, val displayName: String) {
+    HOURS_1(1, message("settings.upstream.interval.1h")),
+    HOURS_24(24, message("settings.upstream.interval.24h")),
+    HOURS_168(168, message("settings.upstream.interval.168h"))
 }
 
 enum class LanguageSelection(val displayName: String) {
