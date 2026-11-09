@@ -6,7 +6,7 @@
 <plugins>
     <plugin id="cn.yiiguxing.plugin.translate.fork"
             version="3.9.3"
-            url="https://github.com/3444ydj/TranslationPlugin/releases/download/fork-v3.9.3/TranslationPlugin-3.9.3.zip">
+            url="http://localhost:8888/build/distributions/TranslationPlugin-3.9.3.zip">
         <idea-version since-build="241"/>
         <name>Translation (fork)</name>
     </plugin>
