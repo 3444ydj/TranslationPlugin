@@ -241,6 +241,9 @@ internal class SettingsPanel(
                     || settings.showActionsInContextMenuOnlyWithSelection != showActionsInContextMenuOnlyWithSelectionCheckbox.isSelected
                     || states.maxHistorySize != maxHistoriesSizeComboBox.item
                     || settings.translationWindowLocation != translationWindowLocationComboBox.selected
+                    || settings.proxyEnabled != proxyEnableCheckBox.isSelected
+                    || settings.proxyHost != proxyHostField.text.trim()
+                    || settings.proxyPort != (proxyPortField.text.toIntOrNull() ?: 0)
         }
 
     private fun getConfigurationPath(vararg configurations: String): String = configurations.joinToString("|") {
@@ -261,6 +264,19 @@ internal class SettingsPanel(
         }
 
         states.maxHistorySize = max(maxHistoriesSizeComboBox.item, 0)
+
+        val proxyPort = proxyPortField.text.toIntOrNull() ?: 0
+        if (proxyEnableCheckBox.isSelected && (proxyHostField.text.isBlank() || proxyPort !in 1..65535)) {
+            throw ConfigurationException(
+                message(
+                    "settings.invalid.configuration",
+                    getConfigurationPath(
+                        message("settings.panel.title.network"),
+                        message("settings.label.proxy.port")
+                    )
+                )
+            )
+        }
 
         with(settings) {
             val selectedTranslator = translationEngineComboBox.selected ?: translator
@@ -300,6 +316,9 @@ internal class SettingsPanel(
             takeWordWhenDialogOpens = takeWordCheckBox.isSelected
             ignoreRegex = this@SettingsPanel.ignoreRegExp.text
             translationWindowLocation = translationWindowLocationComboBox.selected ?: WindowLocation.MOUSE_SCREEN
+            proxyEnabled = proxyEnableCheckBox.isSelected
+            proxyHost = proxyHostField.text.trim()
+            this.proxyPort = proxyPort
         }
     }
 
@@ -338,6 +357,9 @@ internal class SettingsPanel(
         takeWordCheckBox.isSelected = settings.takeWordWhenDialogOpens
         wordbookStoragePathField.text = settings.wordbookStoragePath ?: ""
         translationWindowLocationComboBox.selected = settings.translationWindowLocation
+        proxyEnableCheckBox.isSelected = settings.proxyEnabled
+        proxyHostField.text = settings.proxyHost
+        proxyPortField.text = if (settings.proxyPort > 0) settings.proxyPort.toString() else ""
     }
 
     companion object {

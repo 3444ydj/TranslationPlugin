@@ -201,6 +201,39 @@ internal abstract class SettingsUi {
         renderer = textListCellRenderer { it.displayName }
     }
 
+    protected val proxyEnableCheckBox: JBCheckBox = JBCheckBox(message("settings.options.proxy.enable")).apply {
+        addItemListener {
+            proxyHostField.isEnabled = isSelected
+            proxyPortField.isEnabled = isSelected
+            if (isSelected) {
+                // 启用时填入本地默认代理配置, 已有值不覆盖
+                if (proxyHostField.text.isBlank()) {
+                    proxyHostField.text = DEFAULT_PROXY_HOST
+                }
+                if (proxyPortField.text.isBlank()) {
+                    proxyPortField.text = DEFAULT_PROXY_PORT.toString()
+                }
+            }
+        }
+    }
+
+    protected val proxyHostField: JTextField = JTextField().apply { isEnabled = false }
+
+    /**
+     * 代理端口输入框, 仅允许输入数字(最多 5 位), 无需手动校验非法字符
+     */
+    protected val proxyPortField: JTextField = JTextField().apply {
+        isEnabled = false
+        document = object : PlainDocument() {
+            override fun insertString(offset: Int, str: String?, attr: AttributeSet?) {
+                val digits = str?.filter { it.isDigit() }?.take(5 - length) ?: return
+                if (digits.isNotEmpty()) {
+                    super.insertString(offset, digits, attr)
+                }
+            }
+        }
+    }
+
     protected val supportLinkLabel: LinkLabel<*> =
         LinkLabel<Any>(message("support.or.donate"), TranslationIcons.Support).apply {
             border = JBUI.Borders.emptyTop(20)
@@ -235,6 +268,24 @@ internal abstract class SettingsUi {
             add(JLabel(message("settings.label.targetLanguage")))
             add(targetLanguageComboBox, wrap().sizeGroupX(comboboxGroup))
         }
+        val networkPanel = titledPanel(message("settings.panel.title.network")) {
+            add(proxyEnableCheckBox, wrap().span(4))
+
+            add(JLabel(message("settings.label.proxy.host")))
+            add(proxyHostField, CC().minWidth(migSize(160)))
+            add(JLabel(message("settings.label.proxy.port")))
+            add(proxyPortField, wrap().minWidth(migSize(60)))
+
+            val comment = ComponentPanelBuilder.createCommentComponent(message("settings.comment.proxy"), true)
+            val commentCC = fillX()
+                .gapBefore(JBUIScale.scale(2).toString())
+                .gapTop(JBUIScale.scale(2).toString())
+                .spanX(4)
+                .cell(1, 2)
+                .wrap()
+            add(comment, commentCC)
+        }
+
         val textSelectionPanel = titledPanel(message("settings.panel.title.text.selection"), true) {
             add(keepFormatCheckBox, wrap().span(4))
             add(takeNearestWordCheckBox, wrap().span(4))
@@ -355,6 +406,7 @@ internal abstract class SettingsUi {
 
         wholePanel.addVertically(
             generalPanel,
+            networkPanel,
             fontsPanel,
             textSelectionPanel,
             translationPopupPanel,
@@ -390,6 +442,10 @@ internal abstract class SettingsUi {
             "iː əː ɔː uː aː i ə ɔ u æ e ʌ aɪ eɪ ɔɪ ɪə ɛə uə əu au p t k f s θ ʃ tʃ tr ts b d g v z ð ʒ dʒ dr dz m n ŋ h r l w j"
 
         private const val MIN_ELEMENT_WIDTH = 80
+
+        private const val DEFAULT_PROXY_HOST = "127.0.0.1"
+
+        private const val DEFAULT_PROXY_PORT = 7890
 
         private val ERROR_FOREGROUND_COLOR = UIUtil.getErrorForeground()
 

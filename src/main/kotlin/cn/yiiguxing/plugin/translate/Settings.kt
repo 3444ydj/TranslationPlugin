@@ -113,6 +113,21 @@ class Settings : PersistentStateComponent<Settings> {
     var separators: String = "_- "
 
     /**
+     * 启用插件专用 HTTP 代理, 仅作用于本插件发起的网络请求, 不影响 IDE 全局代理配置
+     */
+    var proxyEnabled: Boolean = false
+
+    /**
+     * 代理服务器地址, 支持 IP 或域名, 空串表示未配置(此时即使 [proxyEnabled] 为 true 也不生效)
+     */
+    var proxyHost: String = ""
+
+    /**
+     * 代理服务器端口, 取值范围 [1, 65535], 0 表示未配置
+     */
+    var proxyPort: Int = 0
+
+    /**
      * 翻译时保留文本格式
      */
     var keepFormat: Boolean = false
@@ -209,7 +224,7 @@ class Settings : PersistentStateComponent<Settings> {
 
     companion object {
         private const val CURRENT_DATA_VERSION = 1
-        private const val DATA_VERSION_KEY = "${TranslationPlugin.PLUGIN_ID}.settings.data.version"
+        private const val DATA_VERSION_KEY = "${TranslationPlugin.STORAGE_ID}.settings.data.version"
 
         private val LOG = Logger.getInstance(Settings::class.java)
 
@@ -264,7 +279,7 @@ private const val BAIDU_APP_KEY = "BAIDU_APP_KEY"
 private const val ALI_SERVICE_NAME = "YIIGUXING.TRANSLATION.ALI"
 private const val ALI_APP_KEY = "ALI_APP_KEY"
 
-private val SETTINGS_REPOSITORY_SERVICE = generateServiceName("Settings Repository", TranslationPlugin.PLUGIN_ID)
+private val SETTINGS_REPOSITORY_SERVICE = generateServiceName("Settings Repository", TranslationPlugin.STORAGE_ID)
 
 private val SETTINGS_CHANGE_PUBLISHER: SettingsChangeListener =
     ApplicationManager.getApplication().messageBus.syncPublisher(SettingsChangeListener.TOPIC)
